@@ -1,0 +1,97 @@
+---
+title: "Estudo reformas"
+author: "Julio Trecenti"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Estudo reformas}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r}
+library(rcnj)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+
+# jn_estadual <- load_jn('estadual')
+# save(jn_estadual, file = 'data/jn_estadual.rda')
+```
+
+```{r}
+m <- paste0('^', paste(glossario_estadual$name, collapse = '$|^'), '$')
+reforma <- jn_estadual %>% 
+  select(chave:eff, matches(m), porte) %>%
+  select(sigla, ano, starts_with('rp'), starts_with('rj'), porte) %>%
+  as_data_frame %>%
+  filter(sigla != 'TJ')
+```
+
+
+### Taxas de reforma do segundo grau
+
+```{r}
+reforma %>%
+  select(-matches('1|tr|je')) %>%
+  gather(variavel, valor, -sigla, -ano, -porte) %>%
+  mutate(valor = as.numeric(valor)) %>%
+  inner_join(glossario_estadual, c('variavel' = 'name')) %>%
+  ggplot(aes(x = ano, y = valor, colour = porte, group = sigla)) +
+  geom_line() +
+  facet_grid(porte~descr, scales = 'free_y') +
+  geom_text(aes(x = ano, y = valor, label = sigla)) +
+  guides(colour = F) +
+  theme_bw()
+```
+
+### Taxas de reforma do primeiro grau
+
+```{r}
+reforma %>%
+  select(-matches('2|tr|je')) %>%
+  gather(variavel, valor, -sigla, -ano, -porte) %>%
+  mutate(valor = as.numeric(valor)) %>%
+  inner_join(glossario_estadual, c('variavel' = 'name')) %>%
+  # mutate(descr = ifelse(str_length(descr) > 30, )) %>%
+  ggplot(aes(x = ano, y = valor, colour = porte, group = sigla)) +
+  geom_line() +
+  facet_grid(porte~descr, scales = 'free_y') +
+  geom_text(aes(x = ano, y = valor, label = sigla)) +
+  guides(colour = F) +
+  theme_bw()
+```
+
+### Taxas de reforma das turmas recursais
+
+```{r}
+reforma %>%
+  select(-matches('1|2|je')) %>%
+  gather(variavel, valor, -sigla, -ano, -porte) %>%
+  mutate(valor = as.numeric(valor)) %>%
+  inner_join(glossario_estadual, c('variavel' = 'name')) %>%
+  ggplot(aes(x = ano, y = valor, colour = porte, group = sigla)) +
+  geom_line() +
+  facet_grid(porte~descr, scales = 'free_y') +
+  geom_text(aes(x = ano, y = valor, label = sigla)) +
+  guides(colour = F) +
+  theme_bw()
+```
+
+### Taxas de reforma dos juizados especiais
+
+```{r}
+reforma %>%
+  select(-matches('1|tr|2')) %>%
+  gather(variavel, valor, -sigla, -ano, -porte) %>%
+  mutate(valor = as.numeric(valor)) %>%
+  inner_join(glossario_estadual, c('variavel' = 'name')) %>%
+  ggplot(aes(x = ano, y = valor, colour = porte, group = sigla)) +
+  geom_line() +
+  facet_grid(porte~descr, scales = 'free_y') +
+  geom_text(aes(x = ano, y = valor, label = sigla)) +
+  guides(colour = F) +
+  theme_bw()
+```
+
